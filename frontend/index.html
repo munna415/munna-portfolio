@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MA Aziz Munna | Full Stack Developer & AI Enthusiast</title>
+  <!-- Tailwind + Font Awesome + Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+    body { background: #f8fafc; overflow-x: hidden; }
+    .gradient-text { background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .card-hover { transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
+    .card-hover:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -12px rgba(0,0,0,0.15); }
+    .hero-bg { background: radial-gradient(circle at 10% 30%, rgba(30,58,138,0.03) 0%, rgba(59,130,246,0.02) 100%); }
+    .skill-badge { transition: all 0.2s ease; }
+    .skill-badge:hover { transform: scale(1.02); background: #1e3a8a; color: white; }
+    .modal-transition { animation: fadeSlideUp 0.25s ease-out; }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .floating-animation { animation: float 6s ease-in-out infinite; }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+    .admin-panel-open { transform: translateX(0) !important; }
+    /* image preview grid */
+    .image-preview-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+    .preview-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+
+    /* ===== AI CHATBOT WIDGET ===== */
+    #chatToggleBtn {
+      position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+      width: 66px; height: 66px; border-radius: 50%;
+      background: linear-gradient(135deg, #f472b6, #a855f7);
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 24px rgba(168,85,247,0.55);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      padding: 0; overflow: hidden;
+    }
+    #chatToggleBtn:hover { transform: scale(1.1); box-shadow: 0 10px 32px rgba(168,85,247,0.7); }
+    #chatToggleBtn #iconClose { display:none; font-size:22px; font-weight:700; color:white; }
+
+    /* Widget container */
+    #chatWidget {
+      position: fixed; bottom: 108px; right: 24px; z-index: 9998;
+      width: 400px; height: 620px;
+      background: #f6f0ff;
+      border-radius: 28px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(168,85,247,0.12);
+      display: flex; flex-direction: column; overflow: hidden;
+      transform: scale(0.88) translateY(28px);
+      opacity: 0; pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.2,0.9,0.4,1.1);
+      transform-origin: bottom right;
+    }
+    #chatWidget.chat-open { transform: scale(1) translateY(0); opacity:1; pointer-events:all; }
+    @media (max-width: 500px) {
+      #chatWidget { width: 100vw; right:0; bottom:0; height:100dvh; border-radius:0; }
+      #chatToggleBtn { bottom:20px; right:20px; }
+    }
+
+    /* Header */
+    #chatHeader {
+      background: linear-gradient(135deg, #7c3aed 0%, #a855f7 60%, #ec4899 100%);
+      padding: 14px 18px; flex-shrink:0;
+      display: flex; align-items: center; gap: 12px;
+    }
+    #chatHeader .hdr-avatar {
+      width: 46px; height: 46px; border-radius: 50%;
+      background: rgba(255,255,255,0.18); border: 2.5px solid rgba(255,255,255,0.5);
+      display: flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    #chatHeader .hdr-info { flex:1; color:white; }
+    #chatHeader .hdr-name { font-size:16px; font-weight:700; letter-spacing:0.2px; }
+    #chatHeader .hdr-status { font-size:11.5px; opacity:0.88; margin-top:2px; display:flex; align-items:center; gap:5px; }
+    #chatHeader .hdr-dot { width:7px; height:7px; background:#86efac; border-radius:50%; animation:chatPulse 2s infinite; }
+    @keyframes chatPulse { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+    #closeChatBtn { background:rgba(255,255,255,0.18); border:none; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:background 0.2s; flex-shrink:0; }
+    #closeChatBtn:hover { background:rgba(255,255,255,0.32); }
+
+    /* Welcome screen */
+    #chatWelcome {
+      flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding: 24px 20px 16px; background:#f6f0ff; gap:0;
+    }
+    #chatWelcome .wlc-avatar {
+      width:90px; height:90px; border-radius:50%;
+      background: linear-gradient(135deg,#f3e8ff,#fce7f3);
+      border: 3px solid white;
+      box-shadow: 0 8px 28px rgba(168,85,247,0.25);
+      display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+    }
+    #chatWelcome .wlc-name { font-size:22px; font-weight:800; color:#4c1d95; margin-bottom:6px; }
+    #chatWelcome .wlc-tagline { font-size:13px; color:#7c3aed; opacity:0.8; text-align:center; margin-bottom:22px; line-height:1.6; }
+    #chatWelcome .wlc-chips { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+    #chatWelcome .chip {
+      background:white; border:1.5px solid #e9d5ff; color:#6d28d9;
+      font-size:12.5px; padding:8px 14px; border-radius:20px; cursor:pointer;
+      transition: all 0.18s; font-family:'Inter',sans-serif; font-weight:500;
+      box-shadow: 0 2px 8px rgba(168,85,247,0.08);
+    }
+    #chatWelcome .chip:hover { background:#7c3aed; color:white; border-color:#7c3aed; transform:translateY(-1px); }
+
+    /* Messages area */
+    #chatMessages {
+      flex:1; overflow-y:auto; padding:16px 14px 8px;
+      display:none; flex-direction:column; gap:12px; background:#f6f0ff;
+    }
+    #chatMessages.active { display:flex; }
+    #chatMessages::-webkit-scrollbar { width:4px; }
+    #chatMessages::-webkit-scrollbar-thumb { background:#d8b4fe; border-radius:4px; }
+
+    .chat-row { display:flex; align-items:flex-end; gap:8px; }
+    .chat-row.user { flex-direction:row-reverse; }
+    .chat-avatar-sm { width:32px; height:32px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,#7c3aed,#ec4899); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(168,85,247,0.3); }
+    .chat-bubble { padding:11px 15px; border-radius:18px; font-size:13.5px; line-height:1.65; max-width:80%; word-break:break-word; }
+    .chat-row.user .chat-bubble { background:linear-gradient(135deg,#7c3aed,#a855f7); color:white; border-bottom-right-radius:4px; box-shadow:0 3px 12px rgba(124,58,237,0.3); }
+    .chat-row.bot .chat-bubble { background:white; color:#1e293b; border:1px solid #ede9fe; border-bottom-left-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+    .typing-dots span { display:inline-block; width:6px; height:6px; margin:0 2px; background:#a78bfa; border-radius:50%; animation:typingB 1.2s infinite ease-in-out; }
+    .typing-dots span:nth-child(2){animation-delay:.2s;} .typing-dots span:nth-child(3){animation-delay:.4s;}
+    @keyframes typingB { 0%,80%,100%{transform:scale(0.65);opacity:0.45;} 40%{transform:scale(1);opacity:1;} }
+
+    /* Input area */
+    #chatInputArea {
+      padding:12px 14px 14px; background:white; flex-shrink:0;
+      border-top:1px solid #ede9fe;
+      display:flex; gap:10px; align-items:flex-end;
+    }
+    #chatUserInput {
+      flex:1; border:1.5px solid #e9d5ff; border-radius:18px;
+      padding:11px 16px; font-size:14px; outline:none;
+      transition:border-color 0.2s, box-shadow 0.2s;
+      font-family:'Inter',sans-serif; resize:none;
+      min-height:46px; max-height:120px; line-height:1.5;
+      background:#faf5ff; color:#1e293b;
+    }
+    #chatUserInput::placeholder { color:#c4b5fd; }
+    #chatUserInput:focus { border-color:#a855f7; box-shadow:0 0 0 3px rgba(168,85,247,0.12); background:white; }
+    #chatSendBtn {
+      width:46px; height:46px; border-radius:50%; flex-shrink:0;
+      background:linear-gradient(135deg,#7c3aed,#a855f7);
+      color:white; border:none; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:transform 0.2s, opacity 0.2s;
+      box-shadow:0 4px 16px rgba(124,58,237,0.4);
+    }
+    #chatSendBtn:hover { transform:scale(1.1); }
+    #chatSendBtn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+    /* ===== END CHATBOT ===== */
+  </style>
+</head>
+<body>
+
+  <!-- Header with CV download (redirects to online CV) -->
+  <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center flex-wrap gap-3">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-code text-blue-600 text-2xl"></i>
+        <span class="font-bold text-xl tracking-tight text-gray-800">MA Aziz <span class="text-blue-600">Munna</span></span>
+      </div>
+      <button id="downloadCVBtn" class="bg-gradient-to-r from-blue-700 to-indigo-600 hover:from-blue-800 hover:to-indigo-700 text-white px-6 py-2 rounded-full flex items-center gap-2 shadow-md transition-all duration-300 transform hover:scale-105">
+        <i class="fas fa-external-link-alt"></i> Download CV
+      </button>
+    </div>
+  </header>
+
+  <main id="portfolioRoot" class="max-w-7xl mx-auto px-6 py-8 md:py-12 space-y-20"></main>
+
+  <!-- Footer with secret admin button -->
+  <footer class="bg-white border-t border-gray-200 mt-20 py-6 text-center text-gray-500 text-sm">
+    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center flex-wrap gap-3">
+      <span>© 2025 MA Aziz Munna — AI-Powered Full Stack Developer</span>
+      <button id="secretAdminBtn" class="text-gray-400 hover:text-blue-600 text-xs flex items-center gap-1 transition"><i class="fas fa-lock"></i> Admin Portal</button>
+    </div>
+  </footer>
+
+  <!-- Admin Login Modal -->
+  <div id="loginModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden transition-all">
+    <div class="bg-white rounded-2xl p-8 w-96 max-w-[90%] shadow-2xl modal-transition">
+      <h3 class="text-2xl font-bold text-gray-800 mb-4">Admin Login</h3>
+      <input type="text" id="adminUsername" placeholder="Username" class="w-full border border-gray-300 rounded-xl px-4 py-2 mb-3 focus:ring-2 focus:ring-blue-500 outline-none">
+      <input type="password" id="adminPassword" placeholder="Password" class="w-full border border-gray-300 rounded-xl px-4 py-2 mb-5 focus:ring-2 focus:ring-blue-500 outline-none">
+      <div class="flex justify-end gap-3">
+        <button id="closeLoginModal" class="px-4 py-2 border rounded-xl">Cancel</button>
+        <button id="submitLoginBtn" class="px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">Login</button>
+      </div>
+      <p class="text-xs text-gray-400 mt-3 text-center">demo: admin / admin123</p>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard Gear Button -->
+  <div id="adminDashboard" class="fixed top-20 right-6 z-40 hidden">
+    <button id="openAdminPanelBtn" class="bg-gradient-to-r from-gray-900 to-blue-900 text-white p-3 rounded-full shadow-xl hover:scale-110 transition-all duration-300"><i class="fas fa-cog text-xl"></i></button>
+  </div>
+
+  <!-- Admin Side Panel -->
+  <div id="adminSidePanel" class="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 overflow-y-auto">
+    <div class="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+      <h2 class="text-2xl font-bold"><i class="fas fa-shield-alt text-blue-600"></i> Content Manager</h2>
+      <button id="closeAdminPanel" class="text-gray-500 text-2xl">&times;</button>
+    </div>
+    <div class="p-5 space-y-8 pb-24">
+      <!-- Hero Management -->
+      <div class="border-b pb-4"><h3 class="font-bold text-lg flex items-center gap-2"><i class="fas fa-user-astronaut"></i> Hero Section</h3>
+        <div class="mt-2"><label class="text-sm">Name</label><input type="text" id="adminHeroName" class="w-full border p-2 rounded"></div>
+        <div class="mt-2"><label class="text-sm">Title</label><input type="text" id="adminHeroTitle" class="w-full border p-2 rounded"></div>
+        <div class="mt-2"><label class="text-sm">Hero Image (upload new)</label><input type="file" id="adminHeroImageUpload" accept="image/*" class="text-sm"><button id="updateHeroBtn" class="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm">Update Hero</button></div>
+      </div>
+      <!-- About -->
+      <div><h3 class="font-bold text-lg">About Me</h3><textarea id="adminAboutText" rows="3" class="w-full border p-2 rounded"></textarea><button id="updateAboutBtn" class="mt-1 bg-blue-600 text-white px-3 py-1 rounded text-sm">Update</button></div>
+      <!-- Skills -->
+      <div><h3 class="font-bold text-lg">Skills</h3><div id="adminSkillsList" class="space-y-2"></div><div class="flex gap-2 mt-2"><input type="text" id="newSkillInput" placeholder="New skill" class="border p-1 flex-1 rounded"><button id="addSkillBtn" class="bg-green-600 text-white px-3 rounded">+ Add</button></div></div>
+      <!-- Education -->
+      <div><h3 class="font-bold text-lg">Education</h3><div id="adminEducationList"></div><div class="flex gap-2 mt-2"><input type="text" id="newEduInput" placeholder="New education" class="border p-1 flex-1 rounded"><button id="addEduBtn" class="bg-green-600 text-white px-3 rounded">+ Add</button></div></div>
+      <!-- Workshops -->
+      <div><h3 class="font-bold text-lg">Workshops & Trainings</h3><div id="adminWorkshopsList"></div><div class="flex gap-2 mt-2"><input type="text" id="newWorkshopInput" placeholder="New workshop" class="border p-1 flex-1 rounded"><button id="addWorkshopBtn" class="bg-green-600 text-white px-3 rounded">+ Add</button></div></div>
+      <!-- Interests -->
+      <div><h3 class="font-bold text-lg">Interests</h3><div id="adminInterestsList"></div><div class="flex gap-2 mt-2"><input type="text" id="newInterestInput" placeholder="New interest" class="border p-1 flex-1 rounded"><button id="addInterestBtn" class="bg-green-600 text-white px-3 rounded">+ Add</button></div></div>
+      <!-- Projects Management (UPDATED with modal) -->
+      <div><h3 class="font-bold text-lg">Projects</h3><div id="adminProjectsContainer" class="space-y-3"></div><button id="addNewProjectBtn" class="bg-purple-700 text-white w-full py-2 rounded-lg mt-2"><i class="fas fa-plus"></i> Add New Project</button></div>
+      <!-- Contact Info -->
+      <div><h3 class="font-bold text-lg">Contact Info</h3><label>Address</label><textarea id="adminAddress" rows="2" class="w-full border p-1 rounded"></textarea><label>Email</label><input type="email" id="adminEmail" class="w-full border p-1 rounded"><label>Phone</label><input id="adminPhone" class="w-full border p-1 rounded"><label>LinkedIn</label><input id="adminLinkedin" class="w-full border p-1 rounded"><label>Facebook</label><input id="adminFacebook" class="w-full border p-1 rounded"><label>Instagram</label><input id="adminInstagram" class="w-full border p-1 rounded"><label>GitHub</label><input id="adminGithub" class="w-full border p-1 rounded"><button id="updateContactBtn" class="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm">Update Contact</button></div>
+      <button id="logoutAdminBtn" class="bg-red-500 text-white w-full py-2 rounded-lg mt-6">Logout</button>
+    </div>
+  </div>
+
+  <!-- Project Form Modal (Add/Edit) -->
+  <div id="projectFormModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden overflow-y-auto p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 modal-transition">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="projectModalTitle" class="text-2xl font-bold">Add New Project</h3>
+        <button id="closeProjectFormBtn" class="text-gray-500 text-2xl">&times;</button>
+      </div>
+      <div class="space-y-4">
+        <div><label class="block font-semibold mb-1">Project Name</label><input type="text" id="projName" class="w-full border rounded-lg p-2"></div>
+        <div><label class="block font-semibold mb-1">Overview (short description)</label><textarea id="projOverview" rows="2" class="w-full border rounded-lg p-2"></textarea></div>
+        <div><label class="block font-semibold mb-1">Full Details</label><textarea id="projDetails" rows="4" class="w-full border rounded-lg p-2"></textarea></div>
+        <div><label class="block font-semibold mb-1">Tech Stack</label><input type="text" id="projTech" class="w-full border rounded-lg p-2"></div>
+        <div><label class="block font-semibold mb-1">Cover Image (main thumbnail)</label><input type="file" id="projCoverImageInput" accept="image/*" class="border p-1 rounded"><div id="coverPreview" class="mt-2"></div></div>
+        <div><label class="block font-semibold mb-1">Additional Screenshots (multiple images)</label><input type="file" id="projExtraImagesInput" accept="image/*" multiple class="border p-1 rounded"><div id="extraPreview" class="image-preview-grid"></div></div>
+        <input type="hidden" id="editingProjectId" value="">
+        <div class="flex justify-end gap-3 pt-4"><button id="cancelProjectForm" class="px-4 py-2 border rounded-lg">Cancel</button><button id="saveProjectBtn" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Project</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Details View Modal (existing) -->
+  <div id="projectModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden overflow-y-auto p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 modal-transition">
+      <div id="projectModalContent"></div>
+      <div class="flex justify-end mt-4"><button id="closeProjectModal" class="bg-gray-200 px-4 py-2 rounded-xl">Close</button></div>
+    </div>
+  </div>
+
+  <!-- ===== AI CHATBOT FLOATING BUTTON ===== -->
+  <button id="chatToggleBtn" title="Chat with Tushu">
+    <span id="iconChat">
+      <svg viewBox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="33" r="18" fill="#FDDBB4"/>
+        <ellipse cx="32" cy="19" rx="16" ry="9" fill="#4B2E0F"/>
+        <ellipse cx="16" cy="31" rx="5" ry="10" fill="#4B2E0F"/>
+        <ellipse cx="48" cy="31" rx="5" ry="10" fill="#4B2E0F"/>
+        <ellipse cx="24" cy="22" rx="6" ry="5" fill="#4B2E0F"/>
+        <ellipse cx="40" cy="22" rx="6" ry="5" fill="#4B2E0F"/>
+        <ellipse cx="25" cy="33" rx="3" ry="3.5" fill="#2d1a00"/>
+        <ellipse cx="39" cy="33" rx="3" ry="3.5" fill="#2d1a00"/>
+        <circle cx="26.5" cy="31.5" r="1" fill="white"/>
+        <circle cx="40.5" cy="31.5" r="1" fill="white"/>
+        <ellipse cx="21" cy="38" rx="4" ry="2.5" fill="#f9a8d4" opacity="0.7"/>
+        <ellipse cx="43" cy="38" rx="4" ry="2.5" fill="#f9a8d4" opacity="0.7"/>
+        <path d="M26 40 Q32 46 38 40" stroke="#c2715a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <ellipse cx="44" cy="18" rx="5" ry="3" fill="#f472b6" transform="rotate(-20,44,18)"/>
+        <ellipse cx="51" cy="15" rx="5" ry="3" fill="#f472b6" transform="rotate(20,51,15)"/>
+        <circle cx="47.5" cy="16.5" r="2.5" fill="#ec4899"/>
+      </svg>
+    </span>
+    <span id="iconClose">✕</span>
+  </button>
+
+  <!-- ===== CHAT WIDGET ===== -->
+  <div id="chatWidget">
+
+    <!-- Header -->
+    <div id="chatHeader">
+      <div class="hdr-avatar">
+        <svg viewBox="0 0 46 46" width="38" height="38" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="23" cy="26" r="14" fill="#FDDBB4"/>
+          <ellipse cx="23" cy="15" rx="12" ry="7.5" fill="#4B2E0F"/>
+          <ellipse cx="11" cy="24" rx="3.5" ry="8" fill="#4B2E0F"/>
+          <ellipse cx="35" cy="24" rx="3.5" ry="8" fill="#4B2E0F"/>
+          <ellipse cx="17.5" cy="17" rx="4.5" ry="4" fill="#4B2E0F"/>
+          <ellipse cx="28.5" cy="17" rx="4.5" ry="4" fill="#4B2E0F"/>
+          <ellipse cx="18.5" cy="26" rx="2.3" ry="2.6" fill="#2d1a00"/>
+          <ellipse cx="27.5" cy="26" rx="2.3" ry="2.6" fill="#2d1a00"/>
+          <circle cx="19.5" cy="25" r="0.9" fill="white"/>
+          <circle cx="28.5" cy="25" r="0.9" fill="white"/>
+          <ellipse cx="14" cy="31" rx="3.2" ry="2" fill="#f9a8d4" opacity="0.75"/>
+          <ellipse cx="32" cy="31" rx="3.2" ry="2" fill="#f9a8d4" opacity="0.75"/>
+          <path d="M19 33.5 Q23 37 27 33.5" stroke="#c2715a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="31" cy="14" rx="3.8" ry="2.2" fill="#f472b6" transform="rotate(-20,31,14)"/>
+          <ellipse cx="37" cy="11.5" rx="3.8" ry="2.2" fill="#f472b6" transform="rotate(20,37,11.5)"/>
+          <circle cx="34" cy="12.8" r="2" fill="#ec4899"/>
+        </svg>
+      </div>
+      <div class="hdr-info">
+        <div class="hdr-name">Tushu 🌸</div>
+        <div class="hdr-status"><span class="hdr-dot"></span> Online — always here for you</div>
+      </div>
+      <button id="closeChatBtn">✕</button>
+    </div>
+
+    <!-- Welcome Screen (shown when no messages) -->
+    <div id="chatWelcome">
+      <div class="wlc-avatar">
+        <svg viewBox="0 0 90 90" width="72" height="72" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="45" cy="50" r="28" fill="#FDDBB4"/>
+          <ellipse cx="45" cy="28" rx="24" ry="15" fill="#4B2E0F"/>
+          <ellipse cx="20" cy="44" rx="7" ry="16" fill="#4B2E0F"/>
+          <ellipse cx="70" cy="44" rx="7" ry="16" fill="#4B2E0F"/>
+          <ellipse cx="34" cy="32" rx="9" ry="8" fill="#4B2E0F"/>
+          <ellipse cx="56" cy="32" rx="9" ry="8" fill="#4B2E0F"/>
+          <ellipse cx="36" cy="50" rx="4.5" ry="5.2" fill="#2d1a00"/>
+          <ellipse cx="54" cy="50" rx="4.5" ry="5.2" fill="#2d1a00"/>
+          <circle cx="38.5" cy="47.5" r="1.8" fill="white"/>
+          <circle cx="56.5" cy="47.5" r="1.8" fill="white"/>
+          <ellipse cx="26" cy="59" rx="6" ry="3.8" fill="#f9a8d4" opacity="0.75"/>
+          <ellipse cx="64" cy="59" rx="6" ry="3.8" fill="#f9a8d4" opacity="0.75"/>
+          <path d="M35 64 Q45 72 55 64" stroke="#c2715a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <!-- bow -->
+          <ellipse cx="60" cy="25" rx="7" ry="4" fill="#f472b6" transform="rotate(-22,60,25)"/>
+          <ellipse cx="72" cy="20" rx="7" ry="4" fill="#f472b6" transform="rotate(22,72,20)"/>
+          <circle cx="66" cy="22.5" r="3.5" fill="#ec4899"/>
+          <!-- long hair strands -->
+          <path d="M22 55 Q14 70 18 82" stroke="#4B2E0F" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <path d="M68 55 Q76 70 72 82" stroke="#4B2E0F" stroke-width="7" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="wlc-name">Hi, I'm Tushu! 🌸</div>
+      <div class="wlc-tagline">Munna's personal AI assistant.<br>Ask me anything — I'm happy to help!</div>
+      <div class="wlc-chips">
+        <button class="chip" data-q="Munna er skills ki ki?">🛠 Skills কি কি?</button>
+        <button class="chip" data-q="Munna er projects গুলো বলো">💻 Projects দেখাও</button>
+        <button class="chip" data-q="Munna er সাথে কিভাবে contact করবো?">📞 Contact info</button>
+        <button class="chip" data-q="Munna ke niye kichhu bolo">🙋 Munna সম্পর্কে</button>
+      </div>
+    </div>
+
+    <!-- Messages (hidden until first message) -->
+    <div id="chatMessages"></div>
+
+    <!-- Input -->
+    <div id="chatInputArea">
+      <input type="text" id="chatUserInput" placeholder="Tushu কে কিছু জিজ্ঞেস করো..." maxlength="500"/>
+      <button id="chatSendBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855l-.452.18a.5.5 0 0 0-.082.887l.41.26 4.995 3.178 3.178 4.995.26.41a.5.5 0 0 0 .886-.083l5.853-14.996zm-1.833 1.89L6.637 10.07l-.215-.338L.8 6.268l13.33-4.692z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <!-- ===== END CHATBOT ===== -->
+
+  <script>
+    // ---------- DEFAULT DATA (exactly as user provided) ----------
+    const defaultData = {
+      hero: { name: "MA Aziz Munna", title: "Computer Science Student | Full Stack Developer with an AI-Powered Mindset", image: "https://i.ibb.co.com/LD6wPCvG/1000025802-Photoroom.png" },
+      about: "I am a Computer Science and Engineering student with a strong interest in full-stack development and AI-powered applications. I enjoy building real-world solutions such as business management systems, AI chatbots, and personal finance applications. My goal is to create smart, user-friendly, and impactful digital products. I am continuously learning new technologies and improving my skills to become a professional software developer.",
+      skills: ["AI & Tools: AI API, Prompt Engineering, AI Chatbot Development", "Programming: Dart, JavaScript, Basic Python", "App Development: Flutter, Responsive UI, State Management (Basic)", "Web Development: HTML, CSS, JavaScript", "Backend & Database: Firebase, REST API, Basic Backend Logic", "Media Production: Photography, Videography, Video Editing"],
+      education: ["B.Sc in CSE (ongoing): Daffodil International University (2nd Year, CGPA: Trying Best)", "HSC (Science): Cantonment Public School & College, BUESMES (2024, GPA: 5.00)", "SSC (Science): Haridas High School, Lalmonirhat (2022, GPA: 5.00)"],
+      workshops: ["AI Uses and Application Seminar (2024): Practical applications of AI & productivity strategies.", "IT Product Sales Training (2025): Training on IT product sales growth & client communication."],
+      interests: ["Creative Projects", "Learning new tools & technologies", "Networking & connecting with people"],
+      contact: { address: "Current: Daffodil Smart City, Birulia, Savar, Dhaka. Permanent: Goral, Kalijong, Lalmonirhat", email: "ajijmunna2400@gmail.com", phone: "+8801560040075", linkedin: "www.linkedin.com/in/munna2400", facebook: "https://www.facebook.com/munna.yz.98", instagram: "https://www.instagram.com/yz_munna/", github: "https://github.com/munna415" },
+      projects: [{
+        id: "proj1", name: "DIU Smart Admissions Assistant (AI Chatbot)", overview: "An AI-powered, interactive chatbot application designed to assist prospective students with real-time information regarding Daffodil International University admissions, tuition fees, and general queries. Provides ChatGPT-like conversational experience.",
+        detailsText: "Smart Conversational UI: A highly interactive floating chatbot widget with real-time messaging capabilities. Chat History & Session Management: Allows users to create new chats, save previous conversations, and seamlessly switch between multiple sessions. Fully Responsive & Mobile-Optimized: Features dedicated full-screen mode. Rich Text Rendering: Uses React-Markdown to display complex university data perfectly. Engaging Animations: Integrated smooth transitions using Framer Motion.",
+        techStack: "Frontend: React.js, Tailwind CSS, Framer Motion, Lucide React. Backend & API: Node.js (Render), RESTful APIs. Deployment: Vercel (Frontend) & Render (Backend).",
+        coverImage: "https://i.ibb.co.com/67ZDqFzj/Screenshot-2026-04-04-021857.png",
+        extraImages: ["https://i.ibb.co.com/hRKZLWgy/Screenshot-2026-04-04-021715.png"]
+      }]
+    };
+
+    let portfolio = JSON.parse(localStorage.getItem('munna_portfolio')) || defaultData;
+    let isAdminLogged = false;
+
+    function saveData() { 
+      localStorage.setItem('munna_portfolio', JSON.stringify(portfolio)); 
+      renderPortfolio(); 
+      if(isAdminLogged) renderAdminPanels(); 
+    }
+
+    function escapeHtml(str) { 
+      if(!str) return '';
+      return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); 
+    }
+
+    // Render main website
+    function renderPortfolio() {
+      const root = document.getElementById('portfolioRoot');
+      const p = portfolio;
+      const heroHtml = `<section class="hero-bg rounded-3xl p-6 md:p-12 flex flex-col md:flex-row items-center gap-10">
+        <div class="flex-1 text-center md:text-left"><div class="text-sm font-mono text-blue-600 mb-2"><i class="fas fa-terminal"></i> Hello, I'm</div>
+          <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight">${escapeHtml(p.hero.name)}</h1>
+          <p class="text-xl md:text-2xl text-gray-600 mt-4 border-l-4 border-blue-500 pl-4">${escapeHtml(p.hero.title)}</p>
+          <div class="flex gap-4 mt-8 justify-center md:justify-start"><a href="#contact" class="bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-700 transition">Contact Me</a></div>
+        </div>
+        <div class="flex-1 flex justify-center floating-animation"><img src="${p.hero.image}" alt="Munna" class="w-64 h-64 md:w-80 md:h-80 object-cover rounded-full border-4 border-blue-300 shadow-2xl"></div>
+      </section>`;
+      const aboutHtml = `<section><h2 class="text-3xl font-bold flex items-center gap-3"><i class="fas fa-user-alt text-blue-600"></i> About Me</h2><div class="bg-white p-6 rounded-2xl shadow-md mt-4"><p class="text-gray-700 leading-relaxed">${escapeHtml(p.about)}</p></div></section>`;
+      const skillsHtml = `<section><h2 class="text-3xl font-bold flex gap-2"><i class="fas fa-code-branch text-blue-600"></i> Skills</h2><div class="flex flex-wrap gap-3 mt-5">${p.skills.map(s => `<span class="skill-badge bg-gray-100 px-4 py-2 rounded-full text-gray-800 shadow-sm transition-all">${escapeHtml(s)}</span>`).join('')}</div></section>`;
+      const eduHtml = `<section><h2 class="text-3xl font-bold"><i class="fas fa-graduation-cap text-blue-600"></i> Education</h2><div class="grid md:grid-cols-2 gap-5 mt-5">${p.education.map(e => `<div class="bg-white p-5 rounded-xl shadow card-hover"><i class="fas fa-university text-blue-500 mb-2"></i><p class="font-medium">${escapeHtml(e)}</p></div>`).join('')}</div></section>`;
+      const workshopHtml = `<section><h2 class="text-3xl font-bold"><i class="fas fa-chalkboard-user text-blue-600"></i> Workshops & Trainings</h2><div class="space-y-3 mt-4">${p.workshops.map(w => `<div class="bg-gradient-to-r from-gray-50 to-white p-4 rounded-xl border-l-4 border-blue-500 shadow-sm">${escapeHtml(w)}</div>`).join('')}</div></section>`;
+      const interestsHtml = `<section><h2 class="text-3xl font-bold"><i class="fas fa-heart text-blue-600"></i> Interests</h2><div class="flex flex-wrap gap-3 mt-5">${p.interests.map(i => `<span class="bg-blue-50 text-blue-800 px-5 py-2 rounded-full text-md"><i class="fas fa-star mr-1"></i> ${escapeHtml(i)}</span>`).join('')}</div></section>`;
+      const projectsHtml = `<section><h2 class="text-3xl font-bold"><i class="fas fa-laptop-code"></i> Featured Projects</h2><div class="grid md:grid-cols-2 gap-8 mt-6">${p.projects.map(proj => `
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden card-hover transition-all">
+          <img src="${proj.coverImage}" class="h-48 w-full object-cover" alt="${escapeHtml(proj.name)}" onerror="this.src='https://via.placeholder.com/400'">
+          <div class="p-5"><h3 class="text-xl font-bold">${escapeHtml(proj.name)}</h3><p class="text-gray-600 mt-2 line-clamp-2">${escapeHtml(proj.overview.substring(0, 100))}...</p>
+          <div class="flex justify-between items-center mt-4"><button class="text-blue-600 font-medium view-project-detail" data-id="${proj.id}">Details <i class="fas fa-arrow-right"></i></button></div></div>
+        </div>`).join('')}</div></section>`;
+      const contactHtml = `<section id="contact"><h2 class="text-3xl font-bold"><i class="fas fa-address-card"></i> Contact</h2><div class="bg-white p-6 rounded-2xl shadow-md grid md:grid-cols-2 gap-4 mt-4"><div><i class="fas fa-map-marker-alt text-blue-500 mr-2"></i> ${escapeHtml(p.contact.address)}</div><div><i class="fas fa-envelope"></i> ${escapeHtml(p.contact.email)}</div><div><i class="fas fa-phone-alt"></i> ${escapeHtml(p.contact.phone)}</div><div class="flex flex-wrap gap-4 col-span-2"><a href="https://${p.contact.linkedin}" target="_blank" class="text-blue-700"><i class="fab fa-linkedin fa-lg"></i> LinkedIn</a><a href="${p.contact.facebook}" target="_blank" class="text-blue-700"><i class="fab fa-facebook"></i> Facebook</a><a href="${p.contact.instagram}" target="_blank" class="text-pink-600"><i class="fab fa-instagram"></i> Instagram</a><a href="${p.contact.github}" target="_blank" class="text-gray-800"><i class="fab fa-github"></i> GitHub</a></div></div></section>`;
+      root.innerHTML = heroHtml + aboutHtml + skillsHtml + eduHtml + workshopHtml + interestsHtml + projectsHtml + contactHtml;
+      document.querySelectorAll('.view-project-detail').forEach(btn => btn.addEventListener('click', (e) => { const id = btn.getAttribute('data-id'); showProjectDetails(id); }));
+    }
+
+    function showProjectDetails(projId) {
+      const proj = portfolio.projects.find(p => p.id === projId);
+      if(!proj) return;
+      const modal = document.getElementById('projectModal');
+      const contentDiv = document.getElementById('projectModalContent');
+      contentDiv.innerHTML = `<h2 class="text-2xl font-bold">${escapeHtml(proj.name)}</h2><img src="${proj.coverImage}" class="my-4 rounded-xl w-full max-h-64 object-cover" onerror="this.src='https://via.placeholder.com/400'"><div class="mt-2"><h3 class="font-semibold">Overview</h3><p>${escapeHtml(proj.overview)}</p></div><div class="mt-3"><h3 class="font-semibold">Details</h3><p>${escapeHtml(proj.detailsText)}</p></div><div><h3 class="font-semibold">Tech Stack</h3><p class="text-sm bg-gray-100 p-2 rounded">${escapeHtml(proj.techStack)}</p></div><div class="mt-3"><h3 class="font-semibold">Screenshots</h3><div class="flex gap-2 flex-wrap">${proj.extraImages.map(img => `<img src="${img}" class="h-32 w-auto rounded shadow" onerror="this.src='https://via.placeholder.com/100'">`).join('')}</div></div>`;
+      modal.classList.remove('hidden');
+    }
+
+    // ---------- PROJECT FORM MODAL LOGIC (Add / Edit with image uploads) ----------
+    const projectFormModal = document.getElementById('projectFormModal');
+    const projNameInput = document.getElementById('projName');
+    const projOverviewInput = document.getElementById('projOverview');
+    const projDetailsInput = document.getElementById('projDetails');
+    const projTechInput = document.getElementById('projTech');
+    const projCoverInput = document.getElementById('projCoverImageInput');
+    const projExtraInput = document.getElementById('projExtraImagesInput');
+    const coverPreviewDiv = document.getElementById('coverPreview');
+    const extraPreviewDiv = document.getElementById('extraPreview');
+    const editingIdField = document.getElementById('editingProjectId');
+    let currentCoverBase64 = null;
+    let currentExtraBase64Array = [];
+
+    function resetProjectForm() {
+      projNameInput.value = '';
+      projOverviewInput.value = '';
+      projDetailsInput.value = '';
+      projTechInput.value = '';
+      projCoverInput.value = '';
+      projExtraInput.value = '';
+      coverPreviewDiv.innerHTML = '';
+      extraPreviewDiv.innerHTML = '';
+      currentCoverBase64 = null;
+      currentExtraBase64Array = [];
+      editingIdField.value = '';
+      document.getElementById('projectModalTitle').innerText = 'Add New Project';
+    }
+
+    function previewCover(file) {
+      if(file) {
+        const reader = new FileReader();
+        reader.onload = e => { currentCoverBase64 = e.target.result; coverPreviewDiv.innerHTML = `<img src="${currentCoverBase64}" class="h-20 w-auto rounded border">`; };
+        reader.readAsDataURL(file);
+      } else { currentCoverBase64 = null; coverPreviewDiv.innerHTML = ''; }
+    }
+    function previewExtras(files) {
+      extraPreviewDiv.innerHTML = '';
+      currentExtraBase64Array = [];
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => { currentExtraBase64Array.push(e.target.result); extraPreviewDiv.innerHTML += `<img src="${e.target.result}" class="preview-img">`; };
+        reader.readAsDataURL(file);
+      });
+    }
+    projCoverInput.addEventListener('change', (e) => previewCover(e.target.files[0]));
+    projExtraInput.addEventListener('change', (e) => previewExtras(e.target.files));
+
+    function openProjectForm(project = null) {
+      resetProjectForm();
+      if(project) {
+        document.getElementById('projectModalTitle').innerText = 'Edit Project';
+        projNameInput.value = project.name;
+        projOverviewInput.value = project.overview;
+        projDetailsInput.value = project.detailsText;
+        projTechInput.value = project.techStack;
+        editingIdField.value = project.id;
+        if(project.coverImage && !project.coverImage.startsWith('data:')) {
+          // keep original url but for editing we allow upload; show as preview if it's a url
+          coverPreviewDiv.innerHTML = `<img src="${project.coverImage}" class="h-20 w-auto rounded border">`;
+          currentCoverBase64 = project.coverImage;
+        } else if(project.coverImage) {
+          coverPreviewDiv.innerHTML = `<img src="${project.coverImage}" class="h-20 w-auto rounded border">`;
+          currentCoverBase64 = project.coverImage;
+        }
+        if(project.extraImages && project.extraImages.length) {
+          extraPreviewDiv.innerHTML = project.extraImages.map(img => `<img src="${img}" class="preview-img">`).join('');
+          currentExtraBase64Array = [...project.extraImages];
+        }
+      }
+      projectFormModal.classList.remove('hidden');
+    }
+
+    function saveProjectFromForm() {
+      const name = projNameInput.value.trim();
+      const overview = projOverviewInput.value.trim();
+      const details = projDetailsInput.value.trim();
+      const tech = projTechInput.value.trim();
+      if(!name || !overview) { alert('Please fill at least name and overview'); return; }
+      let coverImage = currentCoverBase64 || 'https://via.placeholder.com/400';
+      let extraImages = currentExtraBase64Array.filter(img => img);
+      const editingId = editingIdField.value;
+      if(editingId) {
+        // edit existing
+        const index = portfolio.projects.findIndex(p => p.id === editingId);
+        if(index !== -1) {
+          portfolio.projects[index] = { ...portfolio.projects[index], name, overview, detailsText: details, techStack: tech, coverImage, extraImages };
+        }
+      } else {
+        // add new
+        const newId = Date.now().toString();
+        portfolio.projects.push({ id: newId, name, overview, detailsText: details, techStack: tech, coverImage, extraImages });
+      }
+      saveData();
+      projectFormModal.classList.add('hidden');
+    }
+
+    // Admin Panel Rendering (projects list with edit/delete)
+    function renderAdminPanels() {
+      if(!isAdminLogged) return;
+      document.getElementById('adminHeroName').value = portfolio.hero.name;
+      document.getElementById('adminHeroTitle').value = portfolio.hero.title;
+      document.getElementById('adminAboutText').value = portfolio.about;
+      document.getElementById('adminAddress').value = portfolio.contact.address;
+      document.getElementById('adminEmail').value = portfolio.contact.email;
+      document.getElementById('adminPhone').value = portfolio.contact.phone;
+      document.getElementById('adminLinkedin').value = portfolio.contact.linkedin;
+      document.getElementById('adminFacebook').value = portfolio.contact.facebook;
+      document.getElementById('adminInstagram').value = portfolio.contact.instagram;
+      document.getElementById('adminGithub').value = portfolio.contact.github;
+      
+      const skillsDiv = document.getElementById('adminSkillsList'); skillsDiv.innerHTML = '';
+      portfolio.skills.forEach((skill, idx) => { skillsDiv.innerHTML += `<div class="flex justify-between items-center bg-gray-50 p-2 rounded"><span>${escapeHtml(skill)}</span><div><button class="editSkillBtn text-blue-500 mr-2" data-index="${idx}"><i class="fas fa-edit"></i></button><button class="delSkillBtn text-red-500" data-index="${idx}"><i class="fas fa-trash"></i></button></div></div>`; });
+      const eduDiv = document.getElementById('adminEducationList'); eduDiv.innerHTML = '';
+      portfolio.education.forEach((e, idx) => { eduDiv.innerHTML += `<div class="flex justify-between bg-gray-50 p-2 rounded mb-1"><span>${escapeHtml(e)}</span><div><button class="editEduBtn text-blue-500 mr-2" data-index="${idx}"><i class="fas fa-edit"></i></button><button class="delEduBtn text-red-500" data-index="${idx}"><i class="fas fa-trash"></i></button></div></div>`; });
+      const workshopsDiv = document.getElementById('adminWorkshopsList'); workshopsDiv.innerHTML = '';
+      portfolio.workshops.forEach((w, idx) => { workshopsDiv.innerHTML += `<div class="flex justify-between bg-gray-50 p-2 rounded mb-1"><span>${escapeHtml(w)}</span><div><button class="editWorkshopBtn" data-index="${idx}"><i class="fas fa-edit text-blue-500"></i></button><button class="delWorkshopBtn text-red-500" data-index="${idx}"><i class="fas fa-trash"></i></button></div></div>`; });
+      const interestsDiv = document.getElementById('adminInterestsList'); interestsDiv.innerHTML = '';
+      portfolio.interests.forEach((i, idx) => { interestsDiv.innerHTML += `<div class="flex justify-between bg-gray-50 p-2 rounded mb-1"><span>${escapeHtml(i)}</span><div><button class="editInterestBtn" data-index="${idx}"><i class="fas fa-edit text-blue-500"></i></button><button class="delInterestBtn text-red-500" data-index="${idx}"><i class="fas fa-trash"></i></button></div></div>`; });
+      const projectsContainer = document.getElementById('adminProjectsContainer'); projectsContainer.innerHTML = '';
+      portfolio.projects.forEach((proj) => { projectsContainer.innerHTML += `<div class="border p-3 rounded-lg flex justify-between items-center"><div><strong>${escapeHtml(proj.name)}</strong><div class="text-xs">${escapeHtml(proj.overview.substring(0,50))}</div></div><div><button class="editProjectBtn bg-yellow-500 text-white px-2 py-1 rounded text-xs mr-2" data-id="${proj.id}">Edit</button><button class="delProjectBtn bg-red-500 text-white px-2 py-1 rounded text-xs" data-id="${proj.id}">Del</button></div></div>`; });
+      attachAdminEvents();
+    }
+
+    function attachAdminEvents() {
+      document.querySelectorAll('.editSkillBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; let newVal = prompt('Edit skill', portfolio.skills[idx]); if(newVal) portfolio.skills[idx]=newVal; saveData(); }));
+      document.querySelectorAll('.delSkillBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; portfolio.skills.splice(idx,1); saveData(); }));
+      document.querySelectorAll('.editEduBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; let newVal = prompt('Edit education', portfolio.education[idx]); if(newVal) portfolio.education[idx]=newVal; saveData(); }));
+      document.querySelectorAll('.delEduBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; portfolio.education.splice(idx,1); saveData(); }));
+      document.querySelectorAll('.editWorkshopBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; let nv = prompt('Edit workshop', portfolio.workshops[idx]); if(nv) portfolio.workshops[idx]=nv; saveData(); }));
+      document.querySelectorAll('.delWorkshopBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; portfolio.workshops.splice(idx,1); saveData(); }));
+      document.querySelectorAll('.editInterestBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; let nv = prompt('Edit interest', portfolio.interests[idx]); if(nv) portfolio.interests[idx]=nv; saveData(); }));
+      document.querySelectorAll('.delInterestBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; portfolio.interests.splice(idx,1); saveData(); }));
+      document.querySelectorAll('.editProjectBtn').forEach(btn => btn.addEventListener('click', (e) => { let id = btn.dataset.id; const proj = portfolio.projects.find(p => p.id === id); if(proj) openProjectForm(proj); }));
+      document.querySelectorAll('.delProjectBtn').forEach(btn => btn.addEventListener('click', (e) => { let id = btn.dataset.id; if(confirm('Delete project?')) { portfolio.projects = portfolio.projects.filter(p => p.id !== id); saveData(); } }));
+    }
+
+    // CV download: redirect to online link
+    document.getElementById('downloadCVBtn')?.addEventListener('click', () => { window.open('https://cv-65b817.tiiny.site', '_blank'); });
+
+    // Admin Login & UI
+    function initAdmin() {
+      const secretBtn = document.getElementById('secretAdminBtn');
+      const loginModal = document.getElementById('loginModal');
+      const closeModal = document.getElementById('closeLoginModal');
+      const submitLogin = document.getElementById('submitLoginBtn');
+      secretBtn.onclick = () => loginModal.classList.remove('hidden');
+      closeModal.onclick = () => loginModal.classList.add('hidden');
+      submitLogin.onclick = () => {
+        const user = document.getElementById('adminUsername').value;
+        const pass = document.getElementById('adminPassword').value;
+        if(user === 'admin' && pass === 'admin123') {
+          isAdminLogged = true;
+          loginModal.classList.add('hidden');
+          document.getElementById('adminDashboard').classList.remove('hidden');
+          renderAdminPanels();
+          alert('Admin logged in! Use gear icon to manage content.');
+        } else alert('Invalid credentials (admin / admin123)');
+      };
+      document.getElementById('openAdminPanelBtn').onclick = () => document.getElementById('adminSidePanel').classList.remove('translate-x-full');
+      document.getElementById('closeAdminPanel').onclick = () => document.getElementById('adminSidePanel').classList.add('translate-x-full');
+      document.getElementById('updateHeroBtn').addEventListener('click', () => {
+        portfolio.hero.name = document.getElementById('adminHeroName').value;
+        portfolio.hero.title = document.getElementById('adminHeroTitle').value;
+        const file = document.getElementById('adminHeroImageUpload').files[0];
+        if(file) { const reader = new FileReader(); reader.onload = e => { portfolio.hero.image = e.target.result; saveData(); }; reader.readAsDataURL(file); }
+        else saveData();
+      });
+      document.getElementById('updateAboutBtn').addEventListener('click', () => { portfolio.about = document.getElementById('adminAboutText').value; saveData(); });
+      document.getElementById('addSkillBtn').addEventListener('click', () => { let val = document.getElementById('newSkillInput').value; if(val) portfolio.skills.push(val); document.getElementById('newSkillInput').value=''; saveData(); });
+      document.getElementById('addEduBtn').addEventListener('click', () => { let val = document.getElementById('newEduInput').value; if(val) portfolio.education.push(val); document.getElementById('newEduInput').value=''; saveData(); });
+      document.getElementById('addWorkshopBtn').addEventListener('click', () => { let val = document.getElementById('newWorkshopInput').value; if(val) portfolio.workshops.push(val); document.getElementById('newWorkshopInput').value=''; saveData(); });
+      document.getElementById('addInterestBtn').addEventListener('click', () => { let val = document.getElementById('newInterestInput').value; if(val) portfolio.interests.push(val); document.getElementById('newInterestInput').value=''; saveData(); });
+      document.getElementById('addNewProjectBtn').addEventListener('click', () => openProjectForm(null));
+      document.getElementById('updateContactBtn').addEventListener('click', () => {
+        portfolio.contact.address = document.getElementById('adminAddress').value;
+        portfolio.contact.email = document.getElementById('adminEmail').value;
+        portfolio.contact.phone = document.getElementById('adminPhone').value;
+        portfolio.contact.linkedin = document.getElementById('adminLinkedin').value;
+        portfolio.contact.facebook = document.getElementById('adminFacebook').value;
+        portfolio.contact.instagram = document.getElementById('adminInstagram').value;
+        portfolio.contact.github = document.getElementById('adminGithub').value;
+        saveData();
+      });
+      document.getElementById('logoutAdminBtn').addEventListener('click', () => { isAdminLogged=false; document.getElementById('adminDashboard').classList.add('hidden'); document.getElementById('adminSidePanel').classList.add('translate-x-full'); saveData(); alert('Logged out'); });
+      document.getElementById('closeProjectFormBtn').addEventListener('click', () => projectFormModal.classList.add('hidden'));
+      document.getElementById('cancelProjectForm').addEventListener('click', () => projectFormModal.classList.add('hidden'));
+      document.getElementById('saveProjectBtn').addEventListener('click', saveProjectFromForm);
+      document.getElementById('closeProjectModal').addEventListener('click', () => document.getElementById('projectModal').classList.add('hidden'));
+      window.onclick = (e) => { if(e.target === document.getElementById('projectModal')) document.getElementById('projectModal').classList.add('hidden'); if(e.target === projectFormModal) projectFormModal.classList.add('hidden'); };
+    }
+
+    renderPortfolio();
+    initAdmin();
+
+    // ===== AI CHATBOT LOGIC =====
+    (function() {
+      const toggleBtn   = document.getElementById('chatToggleBtn');
+      const chatWidget  = document.getElementById('chatWidget');
+      const closeBtn    = document.getElementById('closeChatBtn');
+      const sendBtn     = document.getElementById('chatSendBtn');
+      const userInput   = document.getElementById('chatUserInput');
+      const messagesDiv = document.getElementById('chatMessages');
+      const welcomeDiv  = document.getElementById('chatWelcome');
+      const iconChat    = document.getElementById('iconChat');
+      const iconClose   = document.getElementById('iconClose');
+      let isOpen = false;
+      let hasStarted = false;
+
+      const botAvatarSVG = `<div class="chat-avatar-sm"><svg viewBox="0 0 46 46" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><circle cx="23" cy="26" r="14" fill="#FDDBB4"/><ellipse cx="23" cy="15" rx="12" ry="7.5" fill="#4B2E0F"/><ellipse cx="11" cy="24" rx="3.5" ry="8" fill="#4B2E0F"/><ellipse cx="35" cy="24" rx="3.5" ry="8" fill="#4B2E0F"/><ellipse cx="17.5" cy="17" rx="4.5" ry="4" fill="#4B2E0F"/><ellipse cx="28.5" cy="17" rx="4.5" ry="4" fill="#4B2E0F"/><ellipse cx="18.5" cy="26" rx="2.3" ry="2.6" fill="#2d1a00"/><ellipse cx="27.5" cy="26" rx="2.3" ry="2.6" fill="#2d1a00"/><circle cx="19.5" cy="25" r="0.9" fill="white"/><circle cx="28.5" cy="25" r="0.9" fill="white"/><ellipse cx="14" cy="31" rx="3.2" ry="2" fill="#f9a8d4" opacity="0.75"/><ellipse cx="32" cy="31" rx="3.2" ry="2" fill="#f9a8d4" opacity="0.75"/><path d="M19 33.5 Q23 37 27 33.5" stroke="#c2715a" stroke-width="1.5" fill="none" stroke-linecap="round"/><ellipse cx="31" cy="14" rx="3.8" ry="2.2" fill="#f472b6" transform="rotate(-20,31,14)"/><ellipse cx="37" cy="11.5" rx="3.8" ry="2.2" fill="#f472b6" transform="rotate(20,37,11.5)"/><circle cx="34" cy="12.8" r="2" fill="#ec4899"/></svg></div>`;
+
+      function toggleChat() {
+        isOpen = !isOpen;
+        chatWidget.classList.toggle('chat-open', isOpen);
+        iconChat.style.display = isOpen ? 'none' : 'flex';
+        iconClose.style.display = isOpen ? 'flex' : 'none';
+        Object.assign(iconClose.style, { alignItems:'center', justifyContent:'center' });
+        if (isOpen) userInput.focus();
+      }
+
+      function scrollToBottom() { messagesDiv.scrollTop = messagesDiv.scrollHeight; }
+
+      function startConversation() {
+        if (!hasStarted) {
+          hasStarted = true;
+          welcomeDiv.style.display = 'none';
+          messagesDiv.classList.add('active');
+        }
+      }
+
+      function appendUserMsg(text) {
+        startConversation();
+        const row = document.createElement('div');
+        row.className = 'chat-row user';
+        row.innerHTML = `<div class="chat-bubble">${escapeHtml(text)}</div>`;
+        messagesDiv.appendChild(row);
+        scrollToBottom();
+      }
+
+      function appendBotMsg(text, isTyping) {
+        startConversation();
+        const row = document.createElement('div');
+        row.className = 'chat-row bot';
+        const inner = isTyping
+          ? `<div class="chat-bubble"><span class="typing-dots"><span></span><span></span><span></span></span></div>`
+          : `<div class="chat-bubble">${escapeHtml(text)}</div>`;
+        row.innerHTML = botAvatarSVG + inner;
+        messagesDiv.appendChild(row);
+        scrollToBottom();
+        return row.querySelector('.chat-bubble');
+      }
+
+      async function sendMessage(msgOverride) {
+        const msg = (msgOverride || userInput.value).trim();
+        if (!msg) return;
+        userInput.value = '';
+        sendBtn.disabled = true;
+        appendUserMsg(msg);
+        const thinkingBubble = appendBotMsg('', true);
+        try {
+        const res = await fetch('https://munna-backend.onrender.com/api/chat', {
+         method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ message: msg, portfolio: portfolio })
+});
+          const data = await res.json();
+          thinkingBubble.innerHTML = '';
+          thinkingBubble.textContent = data.reply || 'No response from AI.';
+        } catch (err) {
+          thinkingBubble.innerHTML = '';
+          thinkingBubble.textContent = '❌ Server connect হচ্ছে না। Backend চালু আছে তো? (node server.js)';
+        }
+        sendBtn.disabled = false;
+        userInput.focus();
+        scrollToBottom();
+      }
+
+      // Chip buttons
+      document.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => sendMessage(chip.dataset.q));
+      });
+
+      toggleBtn.addEventListener('click', toggleChat);
+      closeBtn.addEventListener('click', toggleChat);
+      sendBtn.addEventListener('click', () => sendMessage());
+      userInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+    })();
+    // ===== END CHATBOT =====
+  </script>
+</body>
+</html>
