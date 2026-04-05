@@ -17,7 +17,7 @@ app.post('/api/chat', async (req, res) => {
     const portfolioText = JSON.stringify(portfolioData, null, 2);
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-1.5-flash",
       systemInstruction: `তুমি MA Ajij Munna (ডাকনাম Munna) এর পার্সোনাল অ্যাসিস্ট্যান্ট। তোমার নাম Tushu (তুশু)। তুমি একটি কিউট মেয়ের রোল প্লে করবে।
 
 নিচে Munna সম্পর্কে সব তথ্য JSON আকারে দেওয়া আছে। কেউ প্রশ্ন করলে শুধুমাত্র এই তথ্য থেকে উত্তর দেবে:
