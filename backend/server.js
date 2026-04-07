@@ -2,18 +2,18 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const path = require('path'); // এটি সবার উপরে যোগ করা হয়েছে
+const path = require('path'); 
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// আপনার প্রজেক্টের HTML, CSS, JS ফাইলগুলো যেখানে আছে (একই ফোল্ডার হলে __dirname)
-app.use(express.static(__dirname)); 
+// আপনার প্রজেক্টের স্ট্যাটিক ফাইলগুলো লোড করার জন্য পাথ ঠিক করা হয়েছে
+app.use(express.static(path.join(__dirname, '..'))); 
 
-// যখন কেউ ajijmunna.me তে ঢুকবে, তখন সে যেন index.html দেখতে পায়
+// মেইন রুটে index.html ফাইলটি দেখাবে (ফাইলটি এক ধাপ পেছনে থাকায় '..' ব্যবহার করা হয়েছে)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
