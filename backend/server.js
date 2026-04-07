@@ -11,9 +11,9 @@ app.use(express.json());
 // আপনার প্রজেক্টের HTML, CSS, JS ফাইলগুলো যেখানে আছে (একই ফোল্ডার হলে __dirname)
 app.use(express.static(__dirname)); 
 
-// যখন কেউ ajijmunna.me তে ঢুকবে, তখন সে যেন 1.html দেখতে পায়
+// যখন কেউ ajijmunna.me তে ঢুকবে, তখন সে যেন index.html দেখতে পায়
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '1.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
