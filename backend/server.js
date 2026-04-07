@@ -8,12 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// আপনার প্রজেক্টের স্ট্যাটিক ফাইলগুলো লোড করার জন্য পাথ ঠিক করা হয়েছে
-app.use(express.static(path.join(__dirname, '..'))); 
+// ১. স্ট্যাটিক ফাইলগুলো (CSS, JS, Images) লোড করার জন্য frontend ফোল্ডারকে চিনিয়ে দেওয়া
+app.use(express.static(path.join(__dirname, '..', 'frontend'))); 
 
-// মেইন রুটে index.html ফাইলটি দেখাবে (ফাইলটি এক ধাপ পেছনে থাকায় '..' ব্যবহার করা হয়েছে)
+// ২. মেইন রুটে frontend ফোল্ডার থেকে index.html ফাইলটি দেখানো
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
