@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>MA Aziz Munna | Full Stack Developer & AI Enthusiast</title>
-  <!-- Tailwind + Font Awesome + Google Fonts -->
+  <title>MA Ajij Munna | Full Stack Developer & AI Enthusiast</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap" rel="stylesheet">
@@ -22,9 +21,57 @@
     .floating-animation { animation: float 6s ease-in-out infinite; }
     @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
     .admin-panel-open { transform: translateX(0) !important; }
-    /* image preview grid */
     .image-preview-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
     .preview-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+
+    /* ===== CHAT LABEL TYPING ANIMATION ===== */
+    #chatLabelWrap {
+      position: fixed;
+      bottom: 46px;
+      right: 104px;
+      z-index: 9998;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+    #chatLabel {
+      background: white;
+      color: #6d28d9;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 20px;
+      box-shadow: 0 4px 18px rgba(124,58,237,0.22);
+      border: 1.5px solid #e9d5ff;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateX(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.01em;
+    }
+    #chatLabel.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    /* Arrow pointing right toward the button */
+    #chatLabel::after {
+      content: '';
+      position: absolute;
+      right: -8px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 5px solid transparent;
+      border-left-color: white;
+    }
+    /* Hide label when chat is open */
+    #chatWidget.chat-open ~ #chatLabelWrap,
+    .chat-label-hidden { display: none !important; }
+
+    @media (max-width: 500px) {
+      #chatLabelWrap { bottom: 38px; right: 96px; }
+      #chatLabel { font-size: 12px; padding: 6px 12px; }
+    }
 
     /* ===== AI CHATBOT WIDGET ===== */
     #chatToggleBtn {
@@ -54,9 +101,23 @@
       transform-origin: bottom right;
     }
     #chatWidget.chat-open { transform: scale(1) translateY(0); opacity:1; pointer-events:all; }
+
+    /* ---- MOBILE FIX ---- */
     @media (max-width: 500px) {
-      #chatWidget { width: 100vw; right:0; bottom:0; height:100dvh; border-radius:0; }
-      #chatToggleBtn { bottom:20px; right:20px; }
+      #chatToggleBtn { bottom: 20px; right: 20px; }
+      #chatWidget {
+        width: 100vw;
+        right: 0;
+        bottom: 0;
+        /* Use dynamic viewport height to account for browser chrome */
+        height: 100dvh;
+        height: calc(var(--dvh, 1dvh) * 100);
+        border-radius: 0;
+      }
+      /* Input area sticks above system navigation / safe area */
+      #chatInputArea {
+        padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+      }
     }
 
     /* Header */
@@ -82,6 +143,7 @@
     #chatWelcome {
       flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
       padding: 24px 20px 16px; background:#f6f0ff; gap:0;
+      overflow-y: auto;
     }
     #chatWelcome .wlc-avatar {
       width:90px; height:90px; border-radius:50%;
@@ -151,7 +213,6 @@
 </head>
 <body>
 
-  <!-- Header with CV download (redirects to online CV) -->
   <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center flex-wrap gap-3">
       <div class="flex items-center gap-2">
@@ -166,10 +227,9 @@
 
   <main id="portfolioRoot" class="max-w-7xl mx-auto px-6 py-8 md:py-12 space-y-20"></main>
 
-  <!-- Footer with secret admin button -->
   <footer class="bg-white border-t border-gray-200 mt-20 py-6 text-center text-gray-500 text-sm">
     <div class="max-w-7xl mx-auto px-6 flex justify-between items-center flex-wrap gap-3">
-      <span>© 2025 MA Aziz Munna — AI-Powered Full Stack Developer</span>
+      <span>© 2025 MA Ajij Munna — </span>
       <button id="secretAdminBtn" class="text-gray-400 hover:text-blue-600 text-xs flex items-center gap-1 transition"><i class="fas fa-lock"></i> Admin Portal</button>
     </div>
   </footer>
@@ -184,7 +244,6 @@
         <button id="closeLoginModal" class="px-4 py-2 border rounded-xl">Cancel</button>
         <button id="submitLoginBtn" class="px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">Login</button>
       </div>
-      <p class="text-xs text-gray-400 mt-3 text-center">demo: admin / admin123</p>
     </div>
   </div>
 
@@ -200,31 +259,23 @@
       <button id="closeAdminPanel" class="text-gray-500 text-2xl">&times;</button>
     </div>
     <div class="p-5 space-y-8 pb-24">
-      <!-- Hero Management -->
       <div class="border-b pb-4"><h3 class="font-bold text-lg flex items-center gap-2"><i class="fas fa-user-astronaut"></i> Hero Section</h3>
         <div class="mt-2"><label class="text-sm">Name</label><input type="text" id="adminHeroName" class="w-full border p-2 rounded"></div>
         <div class="mt-2"><label class="text-sm">Title</label><input type="text" id="adminHeroTitle" class="w-full border p-2 rounded"></div>
         <div class="mt-2"><label class="text-sm">Hero Image (upload new)</label><input type="file" id="adminHeroImageUpload" accept="image/*" class="text-sm"><button id="updateHeroBtn" class="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm">Update Hero</button></div>
       </div>
-      <!-- About -->
       <div><h3 class="font-bold text-lg">About Me</h3><textarea id="adminAboutText" rows="3" class="w-full border p-2 rounded"></textarea><button id="updateAboutBtn" class="mt-1 bg-blue-600 text-white px-3 py-1 rounded text-sm">Update</button></div>
-      <!-- Skills -->
       <div><h3 class="font-bold text-lg">Skills</h3><div id="adminSkillsList" class="space-y-2"></div><div class="flex gap-2 mt-2"><input type="text" id="newSkillInput" placeholder="New skill" class="border p-1 flex-1 rounded"><button id="addSkillBtn" class="bg-green-600 text-white px-3 rounded">+ Add</button></div></div>
-      <!-- Education -->
       <div><h3 class="font-bold text-lg">Education</h3><div id="adminEducationList"></div><div class="flex gap-2 mt-2"><input type="text" id="newEduInput" placeholder="New education" class="border p-1 flex-1 rounded"><button id="addEduBtn" class="bg-green-600 text-white px-3 rounded">+ Add</button></div></div>
-      <!-- Workshops -->
       <div><h3 class="font-bold text-lg">Workshops & Trainings</h3><div id="adminWorkshopsList"></div><div class="flex gap-2 mt-2"><input type="text" id="newWorkshopInput" placeholder="New workshop" class="border p-1 flex-1 rounded"><button id="addWorkshopBtn" class="bg-green-600 text-white px-3 rounded">+ Add</button></div></div>
-      <!-- Interests -->
       <div><h3 class="font-bold text-lg">Interests</h3><div id="adminInterestsList"></div><div class="flex gap-2 mt-2"><input type="text" id="newInterestInput" placeholder="New interest" class="border p-1 flex-1 rounded"><button id="addInterestBtn" class="bg-green-600 text-white px-3 rounded">+ Add</button></div></div>
-      <!-- Projects Management (UPDATED with modal) -->
       <div><h3 class="font-bold text-lg">Projects</h3><div id="adminProjectsContainer" class="space-y-3"></div><button id="addNewProjectBtn" class="bg-purple-700 text-white w-full py-2 rounded-lg mt-2"><i class="fas fa-plus"></i> Add New Project</button></div>
-      <!-- Contact Info -->
       <div><h3 class="font-bold text-lg">Contact Info</h3><label>Address</label><textarea id="adminAddress" rows="2" class="w-full border p-1 rounded"></textarea><label>Email</label><input type="email" id="adminEmail" class="w-full border p-1 rounded"><label>Phone</label><input id="adminPhone" class="w-full border p-1 rounded"><label>LinkedIn</label><input id="adminLinkedin" class="w-full border p-1 rounded"><label>Facebook</label><input id="adminFacebook" class="w-full border p-1 rounded"><label>Instagram</label><input id="adminInstagram" class="w-full border p-1 rounded"><label>GitHub</label><input id="adminGithub" class="w-full border p-1 rounded"><button id="updateContactBtn" class="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm">Update Contact</button></div>
       <button id="logoutAdminBtn" class="bg-red-500 text-white w-full py-2 rounded-lg mt-6">Logout</button>
     </div>
   </div>
 
-  <!-- Project Form Modal (Add/Edit) -->
+  <!-- Project Form Modal -->
   <div id="projectFormModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden overflow-y-auto p-4">
     <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 modal-transition">
       <div class="flex justify-between items-center mb-4">
@@ -244,12 +295,17 @@
     </div>
   </div>
 
-  <!-- Project Details View Modal (existing) -->
+  <!-- Project Details View Modal -->
   <div id="projectModal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden overflow-y-auto p-4">
     <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 modal-transition">
       <div id="projectModalContent"></div>
       <div class="flex justify-end mt-4"><button id="closeProjectModal" class="bg-gray-200 px-4 py-2 rounded-xl">Close</button></div>
     </div>
+  </div>
+
+  <!-- ===== CHAT LABEL TYPING ANIMATION ===== -->
+  <div id="chatLabelWrap">
+    <span id="chatLabel"></span>
   </div>
 
   <!-- ===== AI CHATBOT FLOATING BUTTON ===== -->
@@ -279,7 +335,6 @@
 
   <!-- ===== CHAT WIDGET ===== -->
   <div id="chatWidget">
-
     <!-- Header -->
     <div id="chatHeader">
       <div class="hdr-avatar">
@@ -309,7 +364,7 @@
       <button id="closeChatBtn">✕</button>
     </div>
 
-    <!-- Welcome Screen (shown when no messages) -->
+    <!-- Welcome Screen -->
     <div id="chatWelcome">
       <div class="wlc-avatar">
         <svg viewBox="0 0 90 90" width="72" height="72" xmlns="http://www.w3.org/2000/svg">
@@ -326,11 +381,9 @@
           <ellipse cx="26" cy="59" rx="6" ry="3.8" fill="#f9a8d4" opacity="0.75"/>
           <ellipse cx="64" cy="59" rx="6" ry="3.8" fill="#f9a8d4" opacity="0.75"/>
           <path d="M35 64 Q45 72 55 64" stroke="#c2715a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-          <!-- bow -->
           <ellipse cx="60" cy="25" rx="7" ry="4" fill="#f472b6" transform="rotate(-22,60,25)"/>
           <ellipse cx="72" cy="20" rx="7" ry="4" fill="#f472b6" transform="rotate(22,72,20)"/>
           <circle cx="66" cy="22.5" r="3.5" fill="#ec4899"/>
-          <!-- long hair strands -->
           <path d="M22 55 Q14 70 18 82" stroke="#4B2E0F" stroke-width="7" fill="none" stroke-linecap="round"/>
           <path d="M68 55 Q76 70 72 82" stroke="#4B2E0F" stroke-width="7" fill="none" stroke-linecap="round"/>
         </svg>
@@ -345,7 +398,7 @@
       </div>
     </div>
 
-    <!-- Messages (hidden until first message) -->
+    <!-- Messages -->
     <div id="chatMessages"></div>
 
     <!-- Input -->
@@ -361,9 +414,9 @@
   <!-- ===== END CHATBOT ===== -->
 
   <script>
-    // ---------- DEFAULT DATA (exactly as user provided) ----------
+    // ---------- DEFAULT DATA ----------
     const defaultData = {
-      hero: { name: "MA Aziz Munna", title: "Computer Science Student | Full Stack Developer with an AI-Powered Mindset", image: "https://i.ibb.co.com/LD6wPCvG/1000025802-Photoroom.png" },
+      hero: { name: "MA Ajij Munna", title: "Computer Science Student | Full Stack Developer with an AI-Powered Mindset", image: "https://i.ibb.co.com/LD6wPCvG/1000025802-Photoroom.png" },
       about: "I am a Computer Science and Engineering student with a strong interest in full-stack development and AI-powered applications. I enjoy building real-world solutions such as business management systems, AI chatbots, and personal finance applications. My goal is to create smart, user-friendly, and impactful digital products. I am continuously learning new technologies and improving my skills to become a professional software developer.",
       skills: ["AI & Tools: AI API, Prompt Engineering, AI Chatbot Development", "Programming: Dart, JavaScript, Basic Python", "App Development: Flutter, Responsive UI, State Management (Basic)", "Web Development: HTML, CSS, JavaScript", "Backend & Database: Firebase, REST API, Basic Backend Logic", "Media Production: Photography, Videography, Video Editing"],
       education: ["B.Sc in CSE (ongoing): Daffodil International University (2nd Year, CGPA: Trying Best)", "HSC (Science): Cantonment Public School & College, BUESMES (2024, GPA: 5.00)", "SSC (Science): Haridas High School, Lalmonirhat (2022, GPA: 5.00)"],
@@ -382,18 +435,17 @@
     let portfolio = JSON.parse(localStorage.getItem('munna_portfolio')) || defaultData;
     let isAdminLogged = false;
 
-    function saveData() { 
-      localStorage.setItem('munna_portfolio', JSON.stringify(portfolio)); 
-      renderPortfolio(); 
-      if(isAdminLogged) renderAdminPanels(); 
+    function saveData() {
+      localStorage.setItem('munna_portfolio', JSON.stringify(portfolio));
+      renderPortfolio();
+      if(isAdminLogged) renderAdminPanels();
     }
 
-    function escapeHtml(str) { 
+    function escapeHtml(str) {
       if(!str) return '';
-      return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); 
+      return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;});
     }
 
-    // Render main website
     function renderPortfolio() {
       const root = document.getElementById('portfolioRoot');
       const p = portfolio;
@@ -418,7 +470,7 @@
         </div>`).join('')}</div></section>`;
       const contactHtml = `<section id="contact"><h2 class="text-3xl font-bold"><i class="fas fa-address-card"></i> Contact</h2><div class="bg-white p-6 rounded-2xl shadow-md grid md:grid-cols-2 gap-4 mt-4"><div><i class="fas fa-map-marker-alt text-blue-500 mr-2"></i> ${escapeHtml(p.contact.address)}</div><div><i class="fas fa-envelope"></i> ${escapeHtml(p.contact.email)}</div><div><i class="fas fa-phone-alt"></i> ${escapeHtml(p.contact.phone)}</div><div class="flex flex-wrap gap-4 col-span-2"><a href="https://${p.contact.linkedin}" target="_blank" class="text-blue-700"><i class="fab fa-linkedin fa-lg"></i> LinkedIn</a><a href="${p.contact.facebook}" target="_blank" class="text-blue-700"><i class="fab fa-facebook"></i> Facebook</a><a href="${p.contact.instagram}" target="_blank" class="text-pink-600"><i class="fab fa-instagram"></i> Instagram</a><a href="${p.contact.github}" target="_blank" class="text-gray-800"><i class="fab fa-github"></i> GitHub</a></div></div></section>`;
       root.innerHTML = heroHtml + aboutHtml + skillsHtml + eduHtml + workshopHtml + interestsHtml + projectsHtml + contactHtml;
-      document.querySelectorAll('.view-project-detail').forEach(btn => btn.addEventListener('click', (e) => { const id = btn.getAttribute('data-id'); showProjectDetails(id); }));
+      document.querySelectorAll('.view-project-detail').forEach(btn => btn.addEventListener('click', () => { showProjectDetails(btn.getAttribute('data-id')); }));
     }
 
     function showProjectDetails(projId) {
@@ -430,7 +482,7 @@
       modal.classList.remove('hidden');
     }
 
-    // ---------- PROJECT FORM MODAL LOGIC (Add / Edit with image uploads) ----------
+    // Project Form Modal
     const projectFormModal = document.getElementById('projectFormModal');
     const projNameInput = document.getElementById('projName');
     const projOverviewInput = document.getElementById('projOverview');
@@ -445,35 +497,21 @@
     let currentExtraBase64Array = [];
 
     function resetProjectForm() {
-      projNameInput.value = '';
-      projOverviewInput.value = '';
-      projDetailsInput.value = '';
-      projTechInput.value = '';
-      projCoverInput.value = '';
-      projExtraInput.value = '';
-      coverPreviewDiv.innerHTML = '';
-      extraPreviewDiv.innerHTML = '';
-      currentCoverBase64 = null;
-      currentExtraBase64Array = [];
+      projNameInput.value = ''; projOverviewInput.value = ''; projDetailsInput.value = '';
+      projTechInput.value = ''; projCoverInput.value = ''; projExtraInput.value = '';
+      coverPreviewDiv.innerHTML = ''; extraPreviewDiv.innerHTML = '';
+      currentCoverBase64 = null; currentExtraBase64Array = [];
       editingIdField.value = '';
       document.getElementById('projectModalTitle').innerText = 'Add New Project';
     }
 
     function previewCover(file) {
-      if(file) {
-        const reader = new FileReader();
-        reader.onload = e => { currentCoverBase64 = e.target.result; coverPreviewDiv.innerHTML = `<img src="${currentCoverBase64}" class="h-20 w-auto rounded border">`; };
-        reader.readAsDataURL(file);
-      } else { currentCoverBase64 = null; coverPreviewDiv.innerHTML = ''; }
+      if(file) { const reader = new FileReader(); reader.onload = e => { currentCoverBase64 = e.target.result; coverPreviewDiv.innerHTML = `<img src="${currentCoverBase64}" class="h-20 w-auto rounded border">`; }; reader.readAsDataURL(file); }
+      else { currentCoverBase64 = null; coverPreviewDiv.innerHTML = ''; }
     }
     function previewExtras(files) {
-      extraPreviewDiv.innerHTML = '';
-      currentExtraBase64Array = [];
-      Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = e => { currentExtraBase64Array.push(e.target.result); extraPreviewDiv.innerHTML += `<img src="${e.target.result}" class="preview-img">`; };
-        reader.readAsDataURL(file);
-      });
+      extraPreviewDiv.innerHTML = ''; currentExtraBase64Array = [];
+      Array.from(files).forEach(file => { const reader = new FileReader(); reader.onload = e => { currentExtraBase64Array.push(e.target.result); extraPreviewDiv.innerHTML += `<img src="${e.target.result}" class="preview-img">`; }; reader.readAsDataURL(file); });
     }
     projCoverInput.addEventListener('change', (e) => previewCover(e.target.files[0]));
     projExtraInput.addEventListener('change', (e) => previewExtras(e.target.files));
@@ -482,52 +520,31 @@
       resetProjectForm();
       if(project) {
         document.getElementById('projectModalTitle').innerText = 'Edit Project';
-        projNameInput.value = project.name;
-        projOverviewInput.value = project.overview;
-        projDetailsInput.value = project.detailsText;
-        projTechInput.value = project.techStack;
+        projNameInput.value = project.name; projOverviewInput.value = project.overview;
+        projDetailsInput.value = project.detailsText; projTechInput.value = project.techStack;
         editingIdField.value = project.id;
-        if(project.coverImage && !project.coverImage.startsWith('data:')) {
-          // keep original url but for editing we allow upload; show as preview if it's a url
-          coverPreviewDiv.innerHTML = `<img src="${project.coverImage}" class="h-20 w-auto rounded border">`;
-          currentCoverBase64 = project.coverImage;
-        } else if(project.coverImage) {
-          coverPreviewDiv.innerHTML = `<img src="${project.coverImage}" class="h-20 w-auto rounded border">`;
-          currentCoverBase64 = project.coverImage;
-        }
-        if(project.extraImages && project.extraImages.length) {
-          extraPreviewDiv.innerHTML = project.extraImages.map(img => `<img src="${img}" class="preview-img">`).join('');
-          currentExtraBase64Array = [...project.extraImages];
-        }
+        if(project.coverImage) { coverPreviewDiv.innerHTML = `<img src="${project.coverImage}" class="h-20 w-auto rounded border">`; currentCoverBase64 = project.coverImage; }
+        if(project.extraImages && project.extraImages.length) { extraPreviewDiv.innerHTML = project.extraImages.map(img => `<img src="${img}" class="preview-img">`).join(''); currentExtraBase64Array = [...project.extraImages]; }
       }
       projectFormModal.classList.remove('hidden');
     }
 
     function saveProjectFromForm() {
-      const name = projNameInput.value.trim();
-      const overview = projOverviewInput.value.trim();
-      const details = projDetailsInput.value.trim();
-      const tech = projTechInput.value.trim();
+      const name = projNameInput.value.trim(); const overview = projOverviewInput.value.trim();
+      const details = projDetailsInput.value.trim(); const tech = projTechInput.value.trim();
       if(!name || !overview) { alert('Please fill at least name and overview'); return; }
       let coverImage = currentCoverBase64 || 'https://via.placeholder.com/400';
       let extraImages = currentExtraBase64Array.filter(img => img);
       const editingId = editingIdField.value;
       if(editingId) {
-        // edit existing
         const index = portfolio.projects.findIndex(p => p.id === editingId);
-        if(index !== -1) {
-          portfolio.projects[index] = { ...portfolio.projects[index], name, overview, detailsText: details, techStack: tech, coverImage, extraImages };
-        }
+        if(index !== -1) portfolio.projects[index] = { ...portfolio.projects[index], name, overview, detailsText: details, techStack: tech, coverImage, extraImages };
       } else {
-        // add new
-        const newId = Date.now().toString();
-        portfolio.projects.push({ id: newId, name, overview, detailsText: details, techStack: tech, coverImage, extraImages });
+        portfolio.projects.push({ id: Date.now().toString(), name, overview, detailsText: details, techStack: tech, coverImage, extraImages });
       }
-      saveData();
-      projectFormModal.classList.add('hidden');
+      saveData(); projectFormModal.classList.add('hidden');
     }
 
-    // Admin Panel Rendering (projects list with edit/delete)
     function renderAdminPanels() {
       if(!isAdminLogged) return;
       document.getElementById('adminHeroName').value = portfolio.hero.name;
@@ -540,7 +557,6 @@
       document.getElementById('adminFacebook').value = portfolio.contact.facebook;
       document.getElementById('adminInstagram').value = portfolio.contact.instagram;
       document.getElementById('adminGithub').value = portfolio.contact.github;
-      
       const skillsDiv = document.getElementById('adminSkillsList'); skillsDiv.innerHTML = '';
       portfolio.skills.forEach((skill, idx) => { skillsDiv.innerHTML += `<div class="flex justify-between items-center bg-gray-50 p-2 rounded"><span>${escapeHtml(skill)}</span><div><button class="editSkillBtn text-blue-500 mr-2" data-index="${idx}"><i class="fas fa-edit"></i></button><button class="delSkillBtn text-red-500" data-index="${idx}"><i class="fas fa-trash"></i></button></div></div>`; });
       const eduDiv = document.getElementById('adminEducationList'); eduDiv.innerHTML = '';
@@ -555,39 +571,33 @@
     }
 
     function attachAdminEvents() {
-      document.querySelectorAll('.editSkillBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; let newVal = prompt('Edit skill', portfolio.skills[idx]); if(newVal) portfolio.skills[idx]=newVal; saveData(); }));
-      document.querySelectorAll('.delSkillBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; portfolio.skills.splice(idx,1); saveData(); }));
-      document.querySelectorAll('.editEduBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; let newVal = prompt('Edit education', portfolio.education[idx]); if(newVal) portfolio.education[idx]=newVal; saveData(); }));
-      document.querySelectorAll('.delEduBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; portfolio.education.splice(idx,1); saveData(); }));
-      document.querySelectorAll('.editWorkshopBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; let nv = prompt('Edit workshop', portfolio.workshops[idx]); if(nv) portfolio.workshops[idx]=nv; saveData(); }));
-      document.querySelectorAll('.delWorkshopBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; portfolio.workshops.splice(idx,1); saveData(); }));
-      document.querySelectorAll('.editInterestBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; let nv = prompt('Edit interest', portfolio.interests[idx]); if(nv) portfolio.interests[idx]=nv; saveData(); }));
-      document.querySelectorAll('.delInterestBtn').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.index; portfolio.interests.splice(idx,1); saveData(); }));
-      document.querySelectorAll('.editProjectBtn').forEach(btn => btn.addEventListener('click', (e) => { let id = btn.dataset.id; const proj = portfolio.projects.find(p => p.id === id); if(proj) openProjectForm(proj); }));
-      document.querySelectorAll('.delProjectBtn').forEach(btn => btn.addEventListener('click', (e) => { let id = btn.dataset.id; if(confirm('Delete project?')) { portfolio.projects = portfolio.projects.filter(p => p.id !== id); saveData(); } }));
+      document.querySelectorAll('.editSkillBtn').forEach(btn => btn.addEventListener('click', () => { let idx = btn.dataset.index; let newVal = prompt('Edit skill', portfolio.skills[idx]); if(newVal) portfolio.skills[idx]=newVal; saveData(); }));
+      document.querySelectorAll('.delSkillBtn').forEach(btn => btn.addEventListener('click', () => { portfolio.skills.splice(btn.dataset.index,1); saveData(); }));
+      document.querySelectorAll('.editEduBtn').forEach(btn => btn.addEventListener('click', () => { let idx = btn.dataset.index; let newVal = prompt('Edit education', portfolio.education[idx]); if(newVal) portfolio.education[idx]=newVal; saveData(); }));
+      document.querySelectorAll('.delEduBtn').forEach(btn => btn.addEventListener('click', () => { portfolio.education.splice(btn.dataset.index,1); saveData(); }));
+      document.querySelectorAll('.editWorkshopBtn').forEach(btn => btn.addEventListener('click', () => { let idx = btn.dataset.index; let nv = prompt('Edit workshop', portfolio.workshops[idx]); if(nv) portfolio.workshops[idx]=nv; saveData(); }));
+      document.querySelectorAll('.delWorkshopBtn').forEach(btn => btn.addEventListener('click', () => { portfolio.workshops.splice(btn.dataset.index,1); saveData(); }));
+      document.querySelectorAll('.editInterestBtn').forEach(btn => btn.addEventListener('click', () => { let idx = btn.dataset.index; let nv = prompt('Edit interest', portfolio.interests[idx]); if(nv) portfolio.interests[idx]=nv; saveData(); }));
+      document.querySelectorAll('.delInterestBtn').forEach(btn => btn.addEventListener('click', () => { portfolio.interests.splice(btn.dataset.index,1); saveData(); }));
+      document.querySelectorAll('.editProjectBtn').forEach(btn => btn.addEventListener('click', () => { const proj = portfolio.projects.find(p => p.id === btn.dataset.id); if(proj) openProjectForm(proj); }));
+      document.querySelectorAll('.delProjectBtn').forEach(btn => btn.addEventListener('click', () => { if(confirm('Delete project?')) { portfolio.projects = portfolio.projects.filter(p => p.id !== btn.dataset.id); saveData(); } }));
     }
 
-    // CV download: redirect to online link
-    document.getElementById('downloadCVBtn')?.addEventListener('click', () => { window.open('https://cv-65b817.tiiny.site', '_blank'); });
+    document.getElementById('downloadCVBtn')?.addEventListener('click', () => { window.open('https://pdflink.to/8683c989', '_blank'); });
 
-    // Admin Login & UI
     function initAdmin() {
-      const secretBtn = document.getElementById('secretAdminBtn');
-      const loginModal = document.getElementById('loginModal');
-      const closeModal = document.getElementById('closeLoginModal');
-      const submitLogin = document.getElementById('submitLoginBtn');
-      secretBtn.onclick = () => loginModal.classList.remove('hidden');
-      closeModal.onclick = () => loginModal.classList.add('hidden');
-      submitLogin.onclick = () => {
+      document.getElementById('secretAdminBtn').onclick = () => document.getElementById('loginModal').classList.remove('hidden');
+      document.getElementById('closeLoginModal').onclick = () => document.getElementById('loginModal').classList.add('hidden');
+      document.getElementById('submitLoginBtn').onclick = () => {
         const user = document.getElementById('adminUsername').value;
         const pass = document.getElementById('adminPassword').value;
-        if(user === 'admin' && pass === 'admin123') {
+        if(user === '01560040075' && pass === 'munnavai2212') {
           isAdminLogged = true;
-          loginModal.classList.add('hidden');
+          document.getElementById('loginModal').classList.add('hidden');
           document.getElementById('adminDashboard').classList.remove('hidden');
           renderAdminPanels();
           alert('Admin logged in! Use gear icon to manage content.');
-        } else alert('Invalid credentials (admin / admin123)');
+        } else alert('Invalid credentials');
       };
       document.getElementById('openAdminPanelBtn').onclick = () => document.getElementById('adminSidePanel').classList.remove('translate-x-full');
       document.getElementById('closeAdminPanel').onclick = () => document.getElementById('adminSidePanel').classList.add('translate-x-full');
@@ -595,8 +605,7 @@
         portfolio.hero.name = document.getElementById('adminHeroName').value;
         portfolio.hero.title = document.getElementById('adminHeroTitle').value;
         const file = document.getElementById('adminHeroImageUpload').files[0];
-        if(file) { const reader = new FileReader(); reader.onload = e => { portfolio.hero.image = e.target.result; saveData(); }; reader.readAsDataURL(file); }
-        else saveData();
+        if(file) { const reader = new FileReader(); reader.onload = e => { portfolio.hero.image = e.target.result; saveData(); }; reader.readAsDataURL(file); } else saveData();
       });
       document.getElementById('updateAboutBtn').addEventListener('click', () => { portfolio.about = document.getElementById('adminAboutText').value; saveData(); });
       document.getElementById('addSkillBtn').addEventListener('click', () => { let val = document.getElementById('newSkillInput').value; if(val) portfolio.skills.push(val); document.getElementById('newSkillInput').value=''; saveData(); });
@@ -619,11 +628,23 @@
       document.getElementById('cancelProjectForm').addEventListener('click', () => projectFormModal.classList.add('hidden'));
       document.getElementById('saveProjectBtn').addEventListener('click', saveProjectFromForm);
       document.getElementById('closeProjectModal').addEventListener('click', () => document.getElementById('projectModal').classList.add('hidden'));
-      window.onclick = (e) => { if(e.target === document.getElementById('projectModal')) document.getElementById('projectModal').classList.add('hidden'); if(e.target === projectFormModal) projectFormModal.classList.add('hidden'); };
+      window.onclick = (e) => {
+        if(e.target === document.getElementById('projectModal')) document.getElementById('projectModal').classList.add('hidden');
+        if(e.target === projectFormModal) projectFormModal.classList.add('hidden');
+      };
     }
 
     renderPortfolio();
     initAdmin();
+
+    // ===== MOBILE DVH FIX =====
+    // Sets --dvh CSS variable for accurate 100dvh on mobile browsers
+    function setDvh() {
+      document.documentElement.style.setProperty('--dvh', `${window.innerHeight * 0.01}px`);
+    }
+    setDvh();
+    window.addEventListener('resize', setDvh);
+    window.addEventListener('orientationchange', () => setTimeout(setDvh, 200));
 
     // ===== AI CHATBOT LOGIC =====
     (function() {
@@ -636,6 +657,8 @@
       const welcomeDiv  = document.getElementById('chatWelcome');
       const iconChat    = document.getElementById('iconChat');
       const iconClose   = document.getElementById('iconClose');
+      const labelWrap   = document.getElementById('chatLabelWrap');
+      const labelEl     = document.getElementById('chatLabel');
       let isOpen = false;
       let hasStarted = false;
 
@@ -647,7 +670,14 @@
         iconChat.style.display = isOpen ? 'none' : 'flex';
         iconClose.style.display = isOpen ? 'flex' : 'none';
         Object.assign(iconClose.style, { alignItems:'center', justifyContent:'center' });
-        if (isOpen) userInput.focus();
+        // Hide label when open
+        labelWrap.style.display = isOpen ? 'none' : 'flex';
+        if (isOpen) {
+          stopLabelAnimation();
+          userInput.focus();
+        } else {
+          startLabelAnimation();
+        }
       }
 
       function scrollToBottom() { messagesDiv.scrollTop = messagesDiv.scrollHeight; }
@@ -690,11 +720,11 @@
         appendUserMsg(msg);
         const thinkingBubble = appendBotMsg('', true);
         try {
-        const res = await fetch('https://munna-backend.onrender.com/api/chat', {
-         method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ message: msg, portfolio: portfolio })
-});
+          const res = await fetch('https://munna-backend.onrender.com/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg, portfolio: portfolio })
+          });
           const data = await res.json();
           thinkingBubble.innerHTML = '';
           thinkingBubble.textContent = data.reply || 'No response from AI.';
@@ -707,7 +737,6 @@
         scrollToBottom();
       }
 
-      // Chip buttons
       document.querySelectorAll('.chip').forEach(chip => {
         chip.addEventListener('click', () => sendMessage(chip.dataset.q));
       });
@@ -716,6 +745,55 @@
       closeBtn.addEventListener('click', toggleChat);
       sendBtn.addEventListener('click', () => sendMessage());
       userInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+
+      // ===== TYPING LABEL ANIMATION =====
+      const labelText = 'Chat with my AI assistant ✨';
+      let labelTimer = null;
+      let labelCycleTimer = null;
+      let isAnimating = false;
+
+      function typeLabel() {
+        if (isOpen) return;
+        isAnimating = true;
+        labelEl.textContent = '';
+        labelEl.classList.add('visible');
+        let i = 0;
+        function typeChar() {
+          if (isOpen) { labelEl.classList.remove('visible'); isAnimating = false; return; }
+          if (i < labelText.length) {
+            labelEl.textContent += labelText[i];
+            i++;
+            labelTimer = setTimeout(typeChar, 65);
+          } else {
+            // Hold for 3.5s then fade out
+            labelTimer = setTimeout(() => {
+              labelEl.classList.remove('visible');
+              isAnimating = false;
+              // Wait 6s then type again
+              labelCycleTimer = setTimeout(typeLabel, 6000);
+            }, 3500);
+          }
+        }
+        typeChar();
+      }
+
+      function stopLabelAnimation() {
+        clearTimeout(labelTimer);
+        clearTimeout(labelCycleTimer);
+        isAnimating = false;
+        labelEl.classList.remove('visible');
+        labelEl.textContent = '';
+      }
+
+      function startLabelAnimation() {
+        stopLabelAnimation();
+        // First appearance after 2s
+        labelCycleTimer = setTimeout(typeLabel, 2000);
+      }
+
+      // Start animation on load
+      startLabelAnimation();
+
     })();
     // ===== END CHATBOT =====
   </script>
